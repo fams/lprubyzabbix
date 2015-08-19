@@ -1,0 +1,19 @@
+require "zabbixapi"
+require "./lib/zabbix_sender"
+require "./lib/diskaggregate"
+
+#Conexão com a API
+zbx = ZabbixApi.connect(
+  :url => 'https://localhost/zabbix/api_jsonrpc.php',
+  :user => 'lpzabbix',
+  :password => 'password',
+#  :debug => true
+)
+
+#Conexao com o sender
+port = 10051
+zabbixhost = '127.0.0.1'
+s = Zabbix::Sender.new 'zabbix-server', port
+
+DiskAggregate.new(zbx,s).template_update("Template-DiscoAgregado")
+
