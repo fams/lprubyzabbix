@@ -7,19 +7,34 @@ class DiskAggregate
   end
   def host_update(hostobj)
     #@host="Zabbix server" 
-    @host=hostobj["name"]
+    @host=hostobj["host"]
+    @hostid=hostobj["hostid"]
+    #binding.pry
     #GetHostID
     # @hostid = hostobj["hostid"]
     #@hostid = zbx.hosts.get_id( :host => @host )
     #Lista Items no host, filtra os que são de filesystes, retorna os items e valores para cálculo
+    #@items = @api_connection.query(
+      #:method => "item.getobjects",
+      #:params => { 
+      #    :output =>  "extend",
+      #    :host => @host
     @items = @api_connection.query(
-      :method => "item.getobjects",
+      :method => "item.get",
       :params => { 
           :output =>  "extend",
-          :host => @host
-    }
-    ).find_all { |e| e["key_"].start_with?("vfs.fs.size") }.map {|i| {:itemid => i["itemid"],:key=> i["key_"],:lastvalue=>i["lastvalue"]}}
+          :hostids => @hostid
+      }
     
+    ).find_all { |e| e["key_"].start_with?("vfs.fs.size") }.map {|i| {:itemid => i["itemid"],:key=> i["key_"],:lastvalue=>i["lastvalue"]}}
+   # resul = @api_connection.query(
+   #   :method => "item.get",
+   #   :params => { 
+   #       :output =>  "extend",
+   #       :hostids => @hostid
+   #   }
+   # )
+    #binding.pry 
     #Uso de disco e total de disco
     total=@items.find_all {|i| i[:key].end_with?("total]") }.map{|e| e[:lastvalue].to_i}.inject(:+)
     used=@items.find_all {|i| i[:key].end_with?("used]") }.map{|e| e[:lastvalue].to_i}.inject(:+)
@@ -28,6 +43,7 @@ class DiskAggregate
       send 'vfs.aggregate[,total]',  total
       send 'vfs.aggregate[,used]',  used
     }
+    #binding.pry 
   end
   ###################START HERE###########
   #Recupera ID do Template
